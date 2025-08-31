@@ -440,7 +440,7 @@
   );
   backdrop-filter: blur(20px);
   border-bottom: 2px solid rgba(255, 107, 53, 0.3);
-  padding: 20px 32px;
+  padding: 10px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -464,7 +464,7 @@
 
 .app-title {
   font-family: "Orbitron", monospace;
-  font-size: 36px;
+  font-size: 3rem;
   font-weight: 900;
   color: white;
   text-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
@@ -497,7 +497,7 @@
   );
   backdrop-filter: blur(15px);
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px 20px;
   text-align: center;
   border: 1px solid rgba(255, 107, 53, 0.3);
   cursor: pointer;
@@ -586,8 +586,8 @@
     rgba(255, 255, 255, 0.95) 0%,
     rgba(255, 255, 255, 0.9) 100%
   );
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 26px;
   margin: 16px 0;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 107, 53, 0.2);
@@ -619,7 +619,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .memory-title {
@@ -1134,7 +1134,7 @@
 .memories-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
   max-height: calc(100vh - 500px);
   overflow-y: auto;
   position: relative;

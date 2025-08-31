@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
 import { useMemories } from "../store/useMemories";
 import "leaflet/dist/leaflet.css";
+
 import MemoryCard from "./MemoryCard";
 
 function ClickToAddHook() {
@@ -145,11 +146,12 @@ export default function MapView() {
                     </h1>
                     <p style={{
                         color: "rgba(255, 255, 255, 0.8)",
-                        fontSize: "14px",
+                        fontSize: "1rem",
                         margin: "4px 0 0 0",
                         fontWeight: "400",
                         fontFamily: "'Rajdhani', sans-serif",
-                        letterSpacing: "0.5px"
+                        padding: "0 0 0 36px",
+                        letterSpacing: "1px"
                     }}>
                         Your musical journey across the world
                     </p>
