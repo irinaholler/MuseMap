@@ -1,0 +1,114 @@
+/* Form and Modal Styles */
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 53, 0.3) 0%,
+    rgba(247, 147, 30, 0.3) 100%
+  );
+  backdrop-filter: blur(15px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  padding: 32px;
+  max-width: 520px;
+  width: 92%;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #f8fbff;
+}
+
+.form-input {
+  width: 100%;
+  border: 2px solid rgba(255, 107, 53, 0.3);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+  backdrop-filter: blur(15px);
+  transition: all 0.3s ease;
+  font-family: "Rajdhani", sans-serif;
+  padding: 10px 16px;
+  /*font-family: inherit; */
+}
+
+.form-input text {
+  color: rgb(251, 249, 246);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+  color: #f8fbff;
+}
+
+/* Textarea specific styles */
+.form-input[rows] {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Form validation styles */
+.form-input:invalid {
+  border-color: #e53e3e;
+}
+
+.form-input:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+/* Form button container */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+/* Form field with icon */
+.form-field-with-icon {
+  position: relative;
+}
+
+.form-field-with-icon .form-input {
+  padding-left: 40px;
+}
+
+.form-field-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #718096;
+  font-size: 16px;
+}

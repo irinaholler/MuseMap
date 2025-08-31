@@ -1,0 +1,25 @@
+musemap/
+├─ server/ # Flask API
+│ ├─ app.py # routes
+│ ├─ database.py # SQLite + SQLModel
+│ ├─ models.py # ORM models & schemas
+│ ├─ enrich.py # setlist lookup + mood palette (stubs)
+│ ├─ poster.py # poster/QR PNG generator
+│ ├─ requirements.txt
+│ └─ .env.example # env vars
+└─ client/ # React (Vite)
+├─ index.html
+├─ package.json
+├─ vite.config.js
+└─ src/
+├─ main.jsx
+├─ App.jsx
+├─ api.js
+├─ styles.css
+└─ components/
+├─ MapView.jsx
+├─ AddMemoryModal.jsx
+└─ MemoryCard.jsx
+
+
+pip install Flask Flask-Cors SQLModel SQLAlchemy pydantic python-dotenv requests Pillow

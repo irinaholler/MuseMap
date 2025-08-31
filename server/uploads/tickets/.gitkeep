@@ -1,0 +1,2 @@
+# This file ensures the tickets directory is tracked in git
+# Uploaded ticket files will be stored here at runtime

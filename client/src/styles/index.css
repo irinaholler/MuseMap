@@ -1,0 +1,8 @@
+/* Main CSS Index - Imports all stylesheets */
+
+/* Import order matters - base first, then components, then responsive */
+@import './base.css';
+@import './animations.css';
+@import './components.css';
+@import './forms.css';
+@import './responsive.css';

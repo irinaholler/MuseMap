@@ -1,0 +1,138 @@
+/* Responsive Design */
+
+/* Tablet and smaller desktop */
+@media (max-width: 1024px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .app-title {
+    font-size: 24px;
+  }
+  
+  .modal-content {
+    max-width: 90%;
+    margin: 20px;
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .app-title {
+    font-size: 22px;
+  }
+  
+  .stats-container {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+  
+  .sidebar {
+    padding: 16px;
+  }
+  
+  .memory-card {
+    padding: 16px;
+    margin: 8px 0;
+  }
+  
+  .modal-content {
+    padding: 24px;
+    margin: 16px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 20px;
+  }
+  
+  .modal-content {
+    padding: 20px;
+    margin: 12px;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .memory-card {
+    padding: 12px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  .app-header {
+    padding: 12px 24px;
+  }
+  
+  .sidebar {
+    padding: 16px;
+  }
+  
+  .stats-container {
+    margin-bottom: 16px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .memory-card::before {
+    height: 2px;
+  }
+  
+  .stat-card {
+    border-width: 0.5px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .float,
+  .pulse,
+  .slide-in {
+    animation: none;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  /* Future dark mode styles can be added here */
+}
