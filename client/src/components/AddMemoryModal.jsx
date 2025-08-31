@@ -7,308 +7,213 @@ export default function AddMemoryModal() {
         artist: "",
         venue: "",
         city: "",
+        country: "DE", // default bias
         date: "",
         note: ""
     });
+
     const [isGeocoding, setIsGeocoding] = useState(false);
     const [geocodedCoords, setGeocodedCoords] = useState(null);
 
-    console.log("AddMemoryModal render - modalOpen:", modalOpen, "pendingCoords:", pendingCoords);
-
-    // Function to geocode city name to coordinates
-    const geocodeCity = async (cityName) => {
-        if (!cityName || cityName.trim() === "") {
-            setGeocodedCoords(null);
-            return;
+    // --- Helpers: date formatting (unchanged) ---
+    const formatDateForDisplay = (dateStr) => {
+        if (!dateStr) return "";
+        if (dateStr.includes(".")) {
+            const p = dateStr.split(".");
+            if (p.length === 3 && p[0].length === 2) return `${p[2]}-${p[1]}-${p[0]}`;
         }
+        const p = dateStr.split("-");
+        if (p.length === 3 && p[0].length === 2) return `${p[2]}-${p[1]}-${p[0]}`;
+        return dateStr;
+    };
+    const formatDateForSubmission = (dateStr) => {
+        if (!dateStr) return "";
+        const p = dateStr.split("-");
+        if (p.length === 3 && p[0].length === 4) return `${p[2]}-${p[1]}-${p[0]}`;
+        return dateStr;
+    };
+
+    // Normalize country to ISO2 lower for Nominatim countrycodes=
+    const countrycodesFrom = (country) => {
+        if (!country) return "";
+        const iso2 = country.trim().slice(0, 2).toLowerCase(); // "DE" → "de", "Germany" → "ge" (not ideal)
+        // quick map for common cases
+        const map = { de: "de", at: "at", ch: "ch", fr: "fr", it: "it", nl: "nl", pl: "pl", cz: "cz" };
+        return map[iso2] || ""; // if unknown, skip
+    };
+
+    // Structured geocode: city + country bias
+    const geocodeCity = async (cityName, country) => {
+        if (!cityName?.trim()) { setGeocodedCoords(null); return; }
 
         setIsGeocoding(true);
         try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`
-            );
-            const data = await response.json();
+            const params = new URLSearchParams({
+                format: "jsonv2",
+                addressdetails: "1",
+                dedupe: "1",
+                limit: "5",
+                featuretype: "city",
+                "accept-language": "de"
+            });
+            params.append("city", cityName.trim());
 
-            if (data && data.length > 0) {
-                const location = data[0];
-                const coords = {
-                    lat: parseFloat(location.lat),
-                    lng: parseFloat(location.lon)
-                };
-                console.log("Geocoded coordinates for", cityName, ":", coords);
-                setGeocodedCoords(coords);
+            const cc = countrycodesFrom(country);
+            if (cc) params.append("countrycodes", cc);
+            // You can also add: params.append("country", country) — but countrycodes bias works well.
+
+            const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
+            const res = await fetch(url, { headers: { "User-Agent": "MuseMap (dev)" } });
+            const data = await res.json();
+
+            if (Array.isArray(data) && data.length) {
+                const best = data[0];
+                setGeocodedCoords({ lat: parseFloat(best.lat), lng: parseFloat(best.lon) });
             } else {
-                console.log("No coordinates found for", cityName);
                 setGeocodedCoords(null);
             }
-        } catch (error) {
-            console.error("Geocoding error:", error);
+        } catch (e) {
+            console.error("Geocoding error:", e);
             setGeocodedCoords(null);
         } finally {
             setIsGeocoding(false);
         }
     };
 
-    // Geocode city when it changes
+    // Debounce structured geocode on city or country change
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (formData.city && formData.city.trim() !== "") {
-                geocodeCity(formData.city);
+        const t = setTimeout(() => {
+            if (formData.city.trim()) geocodeCity(formData.city, formData.country);
+        }, 600);
+        return () => clearTimeout(t);
+    }, [formData.city, formData.country]);
+
+    // Reverse-geocode after map click to prefill city/country
+    useEffect(() => {
+        const run = async () => {
+            if (!pendingCoords) return;
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pendingCoords.lat}&lon=${pendingCoords.lng}&addressdetails=1&accept-language=de`;
+                const res = await fetch(url, { headers: { "User-Agent": "MuseMap (dev)" } });
+                const data = await res.json();
+                const a = data?.address || {};
+                setFormData((f) => ({
+                    ...f,
+                    city: a.city || a.town || a.village || f.city,
+                    country: a.country_code ? a.country_code.toUpperCase() : (a.country || f.country)
+                }));
+            } catch (e) {
+                console.warn("Reverse geocode failed:", e);
             }
-        }, 1000); // Wait 1 second after user stops typing
-
-        return () => clearTimeout(timeoutId);
-    }, [formData.city]);
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Form submitted with data:", formData);
-        console.log("Pending coords:", pendingCoords);
-        console.log("Geocoded coords:", geocodedCoords);
-
-        // Use either manually clicked coordinates or geocoded coordinates
-        const finalCoords = pendingCoords || geocodedCoords;
-
-        // Check each required field
-        const validation = {
-            artist: !!formData.artist && formData.artist.trim() !== "",
-            city: !!formData.city && formData.city.trim() !== "",
-            date: !!formData.date && formData.date.trim() !== "",
-            coords: !!finalCoords
         };
+        run();
+    }, [pendingCoords]);
 
-        console.log("Validation results:", validation);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-        if (!validation.artist || !validation.city || !validation.date || !validation.coords) {
-            console.log("Validation failed:", validation);
-            if (!finalCoords) {
-                alert("Please fill in all required fields (Artist, City, Date). The city will be automatically located on the map.");
-            } else {
-                alert("Please fill in all required fields (Artist, City, Date).");
-            }
+    if (!modalOpen) return null;
+
+    const finalCoords = pendingCoords || geocodedCoords;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.artist.trim() || !formData.city.trim() || !formData.date.trim() || !finalCoords) {
+            alert("Please fill Artist, City, Date and choose a location (click map or let the app geolocate the city).");
             return;
         }
 
-        // Ensure date is in correct format (DD-MM-YYYY)
         let formattedDate = formData.date;
-        if (formData.date.includes('.')) {
-            // Convert from DD.MM.YYYY to DD-MM-YYYY
-            formattedDate = formData.date.replace(/\./g, '-');
-        }
+        if (formattedDate.includes(".")) formattedDate = formattedDate.replace(/\./g, "-");
 
-        const memoryData = {
+        const payload = {
             artist: formData.artist.trim(),
             venue: formData.venue.trim(),
             city: formData.city.trim(),
-            date: formattedDate,
+            country: formData.country.trim(),
+            date: formattedDate, // DD-MM-YYYY (your formatter handles input/output)
             note: formData.note.trim(),
             lat: finalCoords.lat,
             lng: finalCoords.lng
         };
 
-        console.log("Calling add with:", memoryData);
-
-        // Call the add function
-        add(memoryData).then(() => {
-            console.log("Add completed successfully");
-            setFormData({ artist: "", venue: "", city: "", date: "", note: "" });
+        try {
+            await add(payload);
+            setFormData({ artist: "", venue: "", city: "", country: "DE", date: "", note: "" });
             setGeocodedCoords(null);
             setModal(false);
-        }).catch((error) => {
-            console.error("Add failed:", error);
-            // Don't close modal on error, let user see the error
-        });
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        console.log(`Field ${name} changed to:`, value);
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    // Helper function to format date for display
-    const formatDateForDisplay = (dateStr) => {
-        if (!dateStr) return "";
-
-        // Handle various date formats
-        if (dateStr.includes('.')) {
-            // DD.MM.YYYY format, convert to YYYY-MM-DD for HTML input
-            const parts = dateStr.split('.');
-            if (parts.length === 3 && parts[0].length === 2) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
+        } catch (err) {
+            console.error("Add failed:", err);
         }
-
-        // Convert from DD-MM-YYYY to YYYY-MM-DD for HTML date input
-        const parts = dateStr.split('-');
-        if (parts.length === 3 && parts[0].length === 2) {
-            // Already in DD-MM-YYYY format, convert to YYYY-MM-DD
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return dateStr;
     };
-
-    // Helper function to format date for submission
-    const formatDateForSubmission = (dateStr) => {
-        if (!dateStr) return "";
-
-        // Convert from YYYY-MM-DD (HTML date input) to DD-MM-YYYY
-        const parts = dateStr.split('-');
-        if (parts.length === 3 && parts[0].length === 4) {
-            // In YYYY-MM-DD format, convert to DD-MM-YYYY
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return dateStr;
-    };
-
-    if (!modalOpen) {
-        console.log("Modal not open, returning null");
-        return null;
-    }
-
-    // Use either manually clicked coordinates or geocoded coordinates
-    const finalCoords = pendingCoords || geocodedCoords;
 
     return (
         <div className="modal-overlay" onClick={() => setModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2 className="modal-title">
-                        ✨ Add New Memory
-                    </h2>
-                    <button
-                        onClick={() => setModal(false)}
-                        className="modal-close-btn"
-                    >
-                        ×
-                    </button>
+                    <h2 className="modal-title">✨ Add New Memory</h2>
+                    <button onClick={() => setModal(false)} className="modal-close-btn">×</button>
                 </div>
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="form-label">
-                            🎤 Artist *
-                        </label>
-                        <input
-                            type="text"
-                            name="artist"
-                            value={formData.artist}
-                            onChange={handleChange}
-                            className="form-input"
-                            placeholder="e.g., The Beatles"
-                            required
-                        />
+                        <label className="form-label">🎤 Artist *</label>
+                        <input name="artist" className="form-input" value={formData.artist} onChange={handleChange} required />
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">
-                            🏟️ Venue
-                        </label>
-                        <input
-                            type="text"
-                            name="venue"
-                            value={formData.venue}
-                            onChange={handleChange}
-                            className="form-input"
-                            placeholder="e.g., Lanxess Arena"
-                        />
+                        <label className="form-label">🏟️ Venue</label>
+                        <input name="venue" className="form-input" value={formData.venue} onChange={handleChange} />
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">
-                            🌍 City *
-                        </label>
+                        <label className="form-label">🌍 City *</label>
                         <div style={{ position: "relative" }}>
-                            <input
-                                type="text"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                className="form-input"
-                                placeholder="e.g., Berlin"
-                                required
-                            />
-                            {isGeocoding && (
-                                <div className="geocoding-indicator">
-                                    🔍 Locating...
-                                </div>
-                            )}
+                            <input name="city" className="form-input" value={formData.city} onChange={handleChange} placeholder="e.g., Leipzig" required />
+                            {isGeocoding && <div className="geocoding-indicator">🔍 Locating...</div>}
                         </div>
-                        <small className="form-helper">
-                            City will be automatically located on the map
-                        </small>
+                        <small className="form-helper">Tip: set Country to bias the search.</small>
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">
-                            📅 Date (DD-MM-YYYY) *
-                        </label>
+                        <label className="form-label">🏳️ Country (ISO2 or name)</label>
+                        <input type="text" name="country" className="form-input" value={formData.country} onChange={handleChange} placeholder='e.g., "DE" or "Germany"' />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">📅 Date (DD-MM-YYYY) *</label>
                         <input
                             type="date"
                             name="date"
-                            value={formatDateForDisplay(formData.date)}
-                            onChange={(e) => {
-                                const formattedDate = formatDateForSubmission(e.target.value);
-                                console.log("Date changed:", e.target.value, "->", formattedDate);
-                                setFormData(prev => ({
-                                    ...prev,
-                                    date: formattedDate
-                                }));
-                            }}
                             className="form-input"
+                            value={formatDateForDisplay(formData.date)}
+                            onChange={(e) =>
+                                setFormData((p) => ({ ...p, date: formatDateForSubmission(e.target.value) }))
+                            }
                             required
                         />
-                        <small className="form-helper">
-                            Date will be stored in European format (DD-MM-YYYY)
-                        </small>
+                        <small className="form-helper">Stored as DD-MM-YYYY.</small>
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">
-                            💭 Note
-                        </label>
-                        <textarea
-                            name="note"
-                            value={formData.note}
-                            onChange={handleChange}
-                            className="form-textarea"
-                            placeholder="Share your memories from this concert..."
-                            rows="3"
-                        />
+                        <label className="form-label">💭 Note</label>
+                        <textarea name="note" className="form-textarea" rows="3" value={formData.note} onChange={handleChange} />
                     </div>
 
                     {finalCoords && (
                         <div className="location-display">
                             <div className="location-text">
-                                📍 Location: {finalCoords.lat.toFixed(4)}, {finalCoords.lng.toFixed(4)}
-                                {geocodedCoords && !pendingCoords && (
-                                    <span className="location-auto">
-                                        (auto-detected)
-                                    </span>
-                                )}
+                                📍 {finalCoords.lat.toFixed(4)}, {finalCoords.lng.toFixed(4)}
+                                {geocodedCoords && !pendingCoords && <span className="location-auto">(auto)</span>}
                             </div>
                         </div>
                     )}
 
                     <div className="form-actions">
-                        <button
-                            type="button"
-                            onClick={() => setModal(false)}
-                            className="btn-secondary"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn-primary"
-                            disabled={!formData.artist || !formData.city || !formData.date || !finalCoords}
-                            style={{
-                                opacity: (!formData.artist || !formData.city || !formData.date || !finalCoords) ? 0.5 : 1
-                            }}
-                        >
+                        <button type="button" className="btn-secondary" onClick={() => setModal(false)}>Cancel</button>
+                        <button type="submit" className="btn-primary" disabled={!formData.artist || !formData.city || !formData.date || !finalCoords}>
                             ✨ Add Memory
                         </button>
                     </div>
