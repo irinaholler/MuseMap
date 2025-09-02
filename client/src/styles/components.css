@@ -671,8 +671,8 @@
 
 .memory-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 7px;
+  margin-top: 10px;
   opacity: 0;
   transform: translateY(10px);
   transition: all 0.3s ease;
@@ -726,7 +726,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 26px;
 }
 
 .memory-popup {
@@ -736,7 +736,7 @@
     rgba(255, 255, 255, 0.9) 100%
   );
   border-radius: 20px;
-  padding: 30px;
+  padding: 30px 25px;
   max-width: 500px;
   width: 100%;
   max-height: 80vh;
@@ -808,7 +808,7 @@
 
 .memory-popup-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: 25px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 107, 53, 0.2);
@@ -816,7 +816,7 @@
 
 .memory-popup-btn {
   flex: 1;
-  padding: 12px 20px;
+  padding: 12px 13px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -1288,4 +1288,18 @@
   .form-actions {
     flex-direction: column;
   }
+}
+
+/* Poster */
+.poster-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+.poster-preview img {
+  width: 240px; /* tweak: 240–320px works well */
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }

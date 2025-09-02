@@ -172,7 +172,7 @@ export default function MapView() {
             {/* Main Content */}
             <div style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 400px",
+                gridTemplateColumns: "1fr 420px",
                 flex: 1,
                 overflow: "hidden"
             }}>

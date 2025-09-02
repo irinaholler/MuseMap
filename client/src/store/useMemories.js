@@ -7,10 +7,15 @@ export const useMemories = create((set, get) => ({
     loading: false,
     pendingCoords: null, // {lat, lng}
 
+    // UI state
     setModal: (open) => set({ modalOpen: open }),
-
     setPendingCoords: (coords) => set({ pendingCoords: coords, modalOpen: true }),
 
+    // Selectors/helpers
+    byId: (id) => get().items.find((m) => m.id === id) || null,
+    posterUrlOf: (id) => `${api.defaults.baseURL}/card/${id}.png`,
+
+    // API calls
     fetch: async () => {
         try {
             set({ loading: true });
@@ -26,8 +31,11 @@ export const useMemories = create((set, get) => ({
     add: async (memoryData) => {
         try {
             set({ loading: true });
-            const response = await api.post("/memories", memoryData);
-            const newMemory = response.data;
+            // keep country if present (optional)
+            const payload = { ...memoryData };
+            if (!payload.country) delete payload.country;
+
+            const { data: newMemory } = await api.post("/memories", payload);
 
             set(state => ({
                 items: [...state.items, newMemory],
@@ -97,6 +105,7 @@ export const useMemories = create((set, get) => ({
                     item.id === id ? enrichedMemory : item
                 )
             }));
+            return enriched; // <-- let callers await and use it
         } catch (error) {
             console.error("Error enriching memory:", error);
             alert("Failed to enrich memory. Please try again.");

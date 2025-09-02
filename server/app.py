@@ -207,6 +207,7 @@ def card_png(mid: int):
         palette = m.palette or ["#222", "#333", "#444", "#ddd", "#fff"]
         tracks = m.tracks or []
 
+        scale = float(request.args.get("scale", "1.0"))
         draw_poster(
             artist=m.artist,
             city=f"{m.city}, {m.country}".strip(", "),
@@ -215,6 +216,7 @@ def card_png(mid: int):
             tracks=tracks,
             qr_url=qr_target,
             out_path=out_path,
+            width=640, height=960, scale=scale
         )
         return send_from_directory(CARD_DIR, out_name)
 
